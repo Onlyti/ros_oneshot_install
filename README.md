@@ -37,6 +37,6 @@ Arguments
 ## 사용 예시
 ./ubuntu_initial_setting_with_ros1.sh [command] [input] ....
 ```
-git clone http://KUAilab.synology.me:30000/jiwon.seok/ros_initial_setting_with_ros.git
+git clone https://github.com/JiwonSeokOOO/ros_oneshot_install.git
 ./ubuntu_initial_setting_with_ros1.sh -fr n -xw y -sc yes 
 ```
