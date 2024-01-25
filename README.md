@@ -38,5 +38,6 @@ Arguments
 ./ubuntu_initial_setting_with_ros1.sh [command] [input] ....
 ```
 git clone https://github.com/JiwonSeokOOO/ros_oneshot_install.git
+cd ros_oneshot_install
 ./ubuntu_initial_setting_with_ros1.sh -fr n -xw y -sc yes 
 ```
