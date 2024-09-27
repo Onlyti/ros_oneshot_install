@@ -1,43 +1,74 @@
- ros_initial_setting_with_ros
+# ROS Auto Installation Script
 
+This project provides scripts for automatic installation and initial setup of ROS (Robot Operating System) in Ubuntu environments.
 
-# Ubuntu 초기 자동 설치기             
-## 지원 기능
- *Ubuntu 버전 자동인지하여 ROS 설치 지원*      
-                        
-  1. ROS 설치 (기존 ROS 제거 - 옵션)               
-  2. Utility 설치 (ros msgs, driver, tool 설치     
-    2.1 설치 Utility 목록                          
-        2.1.1 novatel_msgs                         
-        2.1.2 can_msgs                             
-        2.1.3 jsk_rviz_plugin                      
-        2.1.4 plotjuggler                          
-        2.1.5 gedit                                
-        2.1.6 terminator                           
-  3. .bashrc 설정 추가 (Xwindow, ROS, shortcuts)   
-    3.1 입력 목록                                  
-        3.1.1 Xwindow                              
-             3.1.1.1 Server IP                     
-        3.1.2 ROS                                  
-             3.1.2.1 ROS master IP                 
-             3.1.2.2 LOCAL IP                      
-             3.1.2.2 Default workspace directory   
-        3.1.3 Shortcuts                            
-             3.1.3.1 Git                           
-             3.1.3.2 Change directory              
-             3.1.3.3 Build tool                    
-## 입력 인자
-Arguments
+## Features
 
-    -fr: force reinstall ros                [yes|y|no|n] (default: no)
-    -xw: Xwindow .bashrc configuration      [yes|y|no|n] (default: no)
-    -sc: Shortcuts .bashrc configuration    [yes|y|no|n] (default: yes)
-    -ut: utility install                    [yes|y|no|n] (default: yes)
+- Automatic detection of Ubuntu version and installation of corresponding ROS version
+- Support for ROS 1 (Melodic, Noetic) and ROS 2 (Foxy, Humble)
+- Option to remove existing ROS installation
+- Installation of useful utilities
+- Automatic configuration of `.bashrc` file (Xwindow, ROS, shortcuts)
 
-## 사용 예시
-./ubuntu_initial_setting_with_ros1.sh [command] [input] ....
+## Utility Installation List
+
+1. ROS-related:
+   - novatel_msgs (ROS 1 only)
+   - can_msgs
+   - jsk_rviz_plugin (ROS 1 only)
+   - plotjuggler
+
+2. Ubuntu utilities:
+   - gedit
+   - terminator
+
+## Usage
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/ros-auto-install.git
+   cd ros-auto-install
+   ```
+
+2. Run the script:
+   - For ROS 1:
+     ```
+     ./ubuntu_initial_setting_with_ros1.sh [options]
+     ```
+   - For ROS 2:
+     ```
+     ./ubuntu_initial_setting_with_ros2.sh [options]
+     ```
+
+## Options
+
+- `-lt`: Set local timezone to US [yes|y|no|n] (default: no)
+- `-fr`: Force reinstall ROS [yes|y|no|n] (default: no)
+- `-xw`: Xwindow .bashrc configuration [yes|y|no|n] (default: no)
+- `-sc`: Shortcuts .bashrc configuration [yes|y|no|n] (default: yes)
+- `-ut`: Utility installation [yes|y|no|n] (default: yes)
+
+## Example
+
+```bash
+./ubuntu_initial_setting_with_ros1.sh -fr y -xw y -sc yes -ut yes
 ```
-git clone https://github.com/JiwonSeokOOO/ros_oneshot_install.git
-cd ros_oneshot_install
-./ubuntu_initial_setting_with_ros1.sh -fr n -xw y -sc yes 
-```
+This command will force reinstall ROS 1, add Xwindow configuration, set up shortcuts, and install utilities.
+
+## Precautions
+
+- This script has been tested on Ubuntu 18.04, 20.04 (ROS 1) and 20.04, 22.04 (ROS 2).
+- It is recommended to backup your system before running the script.
+- Administrator privileges (sudo) are required.
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is distributed under the [MIT License](LICENSE).
+
+## Author
+
+Jiwon Seok - Initial work - [GitHub Profile Link](https://github.com/Onlyti)
