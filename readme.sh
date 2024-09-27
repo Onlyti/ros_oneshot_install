@@ -30,6 +30,7 @@
 #######################################################
 
 Arguments
+    -lt: Set Local Timezone To US           [yes|y|no|n] (default: no)
     -fr: force reinstall ros                [yes|y|no|n] (default: no)
     -xw: Xwindow .bashrc configuration      [yes|y|no|n] (default: no)
     -sc: Shortcuts .bashrc configuration    [yes|y|no|n] (default: yes)

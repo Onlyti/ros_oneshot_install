@@ -4,14 +4,19 @@
 
 # 버전 검사
 result_20=$(cat /etc/os-release | grep -i 20.04)
+result_22=$(cat /etc/os-release | grep -i 22.04)
 ubuntu_version=""
 ubuntu_version_name=""
 if [ ! -z "$result_20" ]; then
     ubuntu_version="20.04"
     ubuntu_version_name="foxy"
 fi
+if [ ! -z "$result_22" ]; then
+    ubuntu_version="22.04"
+    ubuntu_version_name="humble"
+fi
 if [ -z "$ubuntu_version" ]; then
-    echo "본 프로그램은 Ubuntu 20.04에서 작동합니다."
+    echo "본 프로그램은 Ubuntu 20.04, 22.04에서 작동합니다."
     exit 55
 fi
 
@@ -19,6 +24,7 @@ fi
 # ./readme2.sh
 
 # Input arg check
+set_local_timezone="none"
 reinstall_ros="none"
 xwindow_configration="none"
 shortcuts_configuration="none"
@@ -26,7 +32,11 @@ utility_install="none"
 help_command="no"
 while [ ! -z "$1" ]
 do
-    if [ "$1" = "-fr" ]; then
+    if [ "$1" = "-lt" ]; then
+        if [ ! -z "$2" ]; then
+            set_local_timezone="$2"
+        fi
+    elif [ "$1" = "-fr" ]; then
         if [ ! -z "$2" ]; then
             reinstall_ros="$2"
         fi
@@ -58,6 +68,13 @@ done
 # fi
 
 # Argument validation
+## Set Local Timezone
+if [ "$set_local_timezone" = "yes" ] |\
+    [ "$set_local_timezone" = "y" ];then
+    set_local_timezone="yes"
+else
+    set_local_timezone="no"
+fi
 ## ros reinstall. default: no
 if [ $reinstall_ros = "yes" ] |\
     [ $reinstall_ros = "y" ];then
@@ -89,6 +106,7 @@ fi
 
 # Configuration check
 echo
+echo "Set Local Timezone:      $set_local_timezone"
 echo "Force Reinstall ROS:     $reinstall_ros"
 echo "Xwindow Configuration:   $xwindow_configration"
 echo "Shortcuts Configuration: $shortcuts_configuration"
@@ -116,11 +134,28 @@ fi
 ###########################
 # ROS Installation        #
 ###########################
+
+# Set Local Timezone
+
+if [ "$set_local_timezone" = "yes" ]; then
+    echo
+    echo "## Set Local Timezone to en_US.UTF-8 ##"
+
+    locale  # check for UTF-8
+
+    sudo apt update && sudo apt install locales
+    sudo locale-gen en_US en_US.UTF-8
+    sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+    export LANG=en_US.UTF-8
+
+    locale  # verify settings
+fi
+
 # Add ROS 2 apt repository
 echo
 echo "## Add ROS 2 apt repository ##"
 echo "## First ensure that the Ubuntu Universe repository is enabled. ##"
-(sudo apt install software-properties-common | sudo add-apt-repository universe)
+(sudo apt install software-properties-common -y | sudo add-apt-repository universe -y)
 if [ "$?" != "0" ] ; then
     echo "Add ROS 2 apt repository 실패"
     exit 1
@@ -142,56 +177,37 @@ if [ "$?" != "0" ] ; then
     exit 1
 fi
 
+
+# Install ROS 2 packages
 # Installing development tools and ROS tools
 echo
 echo "## Installing development tools and ROS tools ##"
-(sudo apt update && sudo apt install -y libbullet-dev python3-pip python3-pytest-cov ros-dev-tools ros-dev-tools)
+(sudo apt update && sudo apt upgrade -y)
 if [ "$?" != "0" ] ; then
     echo "apt install 실패"
     exit 1
 fi
 
-# install some pip packages needed for testing
-(sudo python3 -m pip install -U \
-  argcomplete \
-  flake8-blind-except \
-  flake8-builtins \
-  flake8-class-newline \
-  flake8-comprehensions \
-  flake8-deprecated \
-  flake8-docstrings \
-  flake8-import-order \
-  flake8-quotes \
-  pytest-repeat \
-  pytest-rerunfailures \
-  pytest)
-if [ "$?" != "0" ] ; then
-    echo "pip install 실패"
-    exit 1
-fi
-
-# install Fast-RTPS dependencies
-(sudo apt install --no-install-recommends -y \
-  libasio-dev \
-  libtinyxml2-dev)
-if [ "$?" != "0" ] ; then
-    echo "pip install 실패"
-    exit 1
-fi
-
 # Clearing prev intalled ros
-if [ reinstall_ros = "yes" ]; then
-    (sudo apt purge ros-* -y)
+if [ "$reinstall_ros" = "yes" ]; then
+    (sudo apt remove ~nros-$ubuntu_version_name-* && sudo apt autoremove)
     if [ "$?" != "0" ] ; then
         echo "ROS 제거 실패"
     fi
 fi
 echo
 echo "### Install ROS desktop"
-(eval "sudo apt install ros-$ubuntu_version_name-desktop-full -y")
+(eval "sudo apt install ros-$ubuntu_version_name-desktop-y")
 if [ "$?" != "0" ] ; then
     echo "ROS install 실패"
     exit 1
+fi
+if [ "$ubuntu_version" = "20.04" ]; then
+    (eval "sudo apt install python3-argcomplete -y")
+    if [ "$?" != "0" ] ; then
+        echo "python3-argcomplete install 실패"
+        exit 1
+    fi
 fi
 
 
@@ -207,12 +223,12 @@ fi
 ## .bashrc update
 
 # 이전에 .bashrc가 업데이트 되었는지 확인
-result_bashrc_already_update=$(cat ~/.bashrc | grep "# ROS")
+result_bashrc_already_update=$(cat ~/.bashrc | grep "# ROS2")
 if [ ! -z "$result_bashrc_already_update" ]; then
     echo ".bashrc는 이미 업데이트 되어있음"
 else
     echo "## .bashrc update ##"
-    if [ xwindow_configration = "yes" ]; then
+    if [ "$xwindow_configration" = "yes" ]; then
         echo "" >> ~/.bashrc
         echo "# For wsl display (xwindow)" >> ~/.bashrc
         echo "export DISPLAY_NUMBER=\"0.0\"" >> ~/.bashrc
@@ -222,15 +238,10 @@ else
     fi
 
     echo "" >> ~/.bashrc
-    echo "# ROS" >> ~/.bashrc
-    echo "export ROS_WS=\"~/catkin_ws\"" >> ~/.bashrc
+    echo "# ROS2" >> ~/.bashrc
+    echo "export ROS_WS2=\"~/ros2_ws\"" >> ~/.bashrc
     echo "source /opt/ros/$ubuntu_version_name/setup.bash" >> ~/.bashrc
-    echo "source \$ROS_WS/devel/setup.bash" >> ~/.bashrc
-    
-    echo "" >> ~/.bashrc
-    echo "export ROS_IP=localhost" >> ~/.bashrc
-    echo "export ROS_MASTER_URI=http://\$ROS_IP:11311/" >> ~/.bashrc
-    echo "export ROS_HOSTNAME=\$ROS_IP" >> ~/.bashrc
+    echo "source \$ROS_WS2/install/setup.bash" >> ~/.bashrc
 
     if [ shortcuts_configuration = "yes" ]; then
         echo "" >> ~/.bashrc
@@ -238,50 +249,11 @@ else
         echo "## short cut for ros" >> ~/.bashrc
 
         echo "" >> ~/.bashrc
-        echo "alias cw=\"cd \$ROS_WS\"" >> ~/.bashrc
-        echo "alias cs=\"cw && cd src\"" >> ~/.bashrc
-        echo "alias cm=\"cw && catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release\"" >> ~/.bashrc
-        echo "alias cmdg=\"cw && catkin_make --cmake-args  -DCMAKE_BUILD_TYPE=Debug\"" >> ~/.bashrc
-        echo "alias rmdb=\"cw && rm -rf devel build\"" >> ~/.bashrc
-        echo "alias sd=\"source \$ROS_WS/devel/setup.bash\"" >> ~/.bashrc
-
-        echo "" >> ~/.bashrc
-        echo "## .bashrc" >> ~/.bashrc
-        echo "alias sb=\"source ~/.bashrc\"" >> ~/.bashrc
-        echo "alias eb=\"gedit ~/.bashrc\"" >> ~/.bashrc
-
-        echo "" >> ~/.bashrc
-        echo "## git" >> ~/.bashrc
-        echo "alias gs=\"git status\"" >> ~/.bashrc
-        echo "alias gp=\"git pull\"" >> ~/.bashrc
+        echo "alias cb=\"colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release\"" >> ~/.bashrc
+        echo "alias cbdg=\"colcon build --cmake-args  -DCMAKE_BUILD_TYPE=Debug\"" >> ~/.bashrc
+        echo "alias rmbi=\"rm -rf build install\"" >> ~/.bashrc
+        echo "alias si=\"source \$ROS_WS2/install/setup.bash\"" >> ~/.bashrc
     fi
-fi
-
-# Dependencies for building packages
-echo
-echo "## Dependencies for building packages ##"
-if [ "$ubuntu_version" = "18.04" ] ; then
-    (sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential -y)
-else
-    (sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential -y)
-fi
-if [ "$?" != "0" ] ; then
-    echo "dependency 설치 실패"
-    exit 1
-fi
-echo
-echo "### rosdep inititialization"
-(sudo rosdep init)
-echo "rosdep : $?"
-if [ "$?" != "0" ] ; then
-    echo "rosdep init 실패"
-fi
-echo
-echo "### rosdep update"
-(rosdep update)
-if [ "$?" != "0" ] ; then
-    echo "rosdep update 실패"
-    exit 1
 fi
 
 # Workspace initialization
@@ -289,10 +261,10 @@ echo
 echo "## Workspace initialization ##"
 (
     cd ~
-    mkdir catkin_ws
-    cd catkin_ws
+    mkdir ros2_ws
+    cd ros2_ws
     mkdir src
-    catkin_make
+    colcon build
     exit 0
 )
 
@@ -301,7 +273,8 @@ echo
 echo "## Install utilities"
 if [ "$utility_install" = "yes" ] ; then
     echo "### Install ROS utilities"
-    (eval "sudo apt install ros-$ubuntu_version_name-novatel-oem7-driver ros-$ubuntu_version_name-can-msgs ros-$ubuntu_version_name-jsk-rviz-plugins ros-$ubuntu_version_name-plotjuggler* -y")
+    # ros-$ubuntu_version_name-novatel-oem7-driver, ros-$ubuntu_version_name-jsk-rviz-plugins are not support for ros2 now.
+    (eval "sudo apt install ros-$ubuntu_version_name-can-msgs ros-$ubuntu_version_name-plotjuggler* -y")
     if [ "$?" != "0" ] ; then
         echo "Ros utility 설치 실패"
         exit 1

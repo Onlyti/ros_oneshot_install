@@ -22,6 +22,7 @@ fi
 ./readme.sh
 
 # Input arg check
+set_local_timezone="none"
 reinstall_ros="none"
 xwindow_configration="none"
 shortcuts_configuration="none"
@@ -29,7 +30,11 @@ utility_install="none"
 help_command="no"
 while [ ! -z "$1" ]
 do
-    if [ "$1" = "-fr" ]; then
+    if [ "$1" = "-lt" ]; then
+        if [ ! -z "$2" ]; then
+            set_local_timezone="$2"
+        fi
+    elif [ "$1" = "-fr" ]; then
         if [ ! -z "$2" ]; then
             reinstall_ros="$2"
         fi
@@ -61,6 +66,13 @@ done
 # fi
 
 # Argument validation
+## Set Local Timezone
+if [ "$set_local_timezone" = "yes" ] |\
+    [ "$set_local_timezone" = "y" ];then
+    set_local_timezone="yes"
+else
+    set_local_timezone="no"
+fi
 ## ros reinstall. default: no
 if [ $reinstall_ros = "yes" ] |\
     [ $reinstall_ros = "y" ];then
@@ -154,7 +166,7 @@ fi
 
 # Clearing prev intalled ros
 if [ reinstall_ros = "yes" ]; then
-    (sudo apt purge ros-* -y)
+    (sudo apt purge ros-$ubuntu_version_name* -y)
     if [ "$?" != "0" ] ; then
         echo "ROS 제거 실패"
     fi
