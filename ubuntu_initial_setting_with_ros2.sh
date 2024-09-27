@@ -21,7 +21,7 @@ if [ -z "$ubuntu_version" ]; then
 fi
 
 # 안내
-# ./readme2.sh
+./readme.sh
 
 # Input arg check
 set_local_timezone="none"
@@ -190,14 +190,14 @@ fi
 
 # Clearing prev intalled ros
 if [ "$reinstall_ros" = "yes" ]; then
-    (sudo apt remove ~nros-$ubuntu_version_name-* && sudo apt autoremove)
+    (sudo apt remove ~nros-$ubuntu_version_name-* -y && sudo apt autoremove -y)
     if [ "$?" != "0" ] ; then
         echo "ROS 제거 실패"
     fi
 fi
 echo
 echo "### Install ROS desktop"
-(eval "sudo apt install ros-$ubuntu_version_name-desktop-y")
+(eval "sudo apt install ros-$ubuntu_version_name-desktop -y")
 if [ "$?" != "0" ] ; then
     echo "ROS install 실패"
     exit 1
